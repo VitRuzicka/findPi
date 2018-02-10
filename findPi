@@ -1,0 +1,54 @@
+#!/bin/bash
+message="Raspberry found on: "
+fing=$(dpkg -l |grep "Overlook Fing")
+mac=$(cat ~/mac/raspberry_pi_mac.txt)
+ssh_pass="raspberry" #here change your password
+user="pi" 
+#zkontrolovani nainstalovani fingu
+
+if [ -z "$fing" ]
+	then
+	zenity --notification --text "Fing is not installed on your system"
+	$(zenity --question --text "Fing isn't installed on your system. Would you like to install it?")
+	rozhodnuti_fing=$?
+	if [ "$rozhodnuti_fing" = "0" ]
+		then
+		if [ "$(uname -m)" = "i386" ] || [ "$(uname -m)" = "i686" ]
+			then
+			wget https://www.fing.io/wp-content/uploads/2016/09/overlook-fing-3.0-1.deb
+			sudo dpkg -i over*.deb
+		elif [ "$(uname -m)" = "armv7l" ]
+			then
+			wget https://www.fing.io/wp-content/uploads/2016/10/overlook-fing-3.0.deb
+			sudo dpkg -i over*.deb
+		fi
+		echo "installed"
+	fi
+fi
+
+if [ "$(ls ~/mac/raspberry_pi_mac.txt)" = "" ]
+	then
+	zenity --question --text "File with MAC adress doesn't exist. Would you like install it?" 
+	vytvorit=$?
+	if [ "$vytvorit" = "0" ]
+		then
+	 	mac_adresa=$(zenity --entry --title MAC --text MAC)
+		cd ~/ && mkdir mac
+		echo $mac_adresa > ~/mac/raspberry_pi_mac.txt
+	fi
+fi
+zenity --notification --text "Looking for pi..."
+
+if [ "$mac" != "" ]
+	then
+	adresa=$(sudo fing -r 1 |grep "$mac" |grep "192.168." |awk '{print $4}')
+	
+	if [ "$adresa" != "" ]
+		then
+		zenity --notification --text "$message $adresa"
+		uxterm -e "sshpass -p $ssh_pass ssh ${user}@${adresa} -X" &
+	else
+		zenity --notification --text "Raspberry Pi wasn't found."
+	fi
+	
+fi
