@@ -4,7 +4,7 @@ fing=$(dpkg -l |grep "Overlook Fing")
 mac=$(cat ~/mac/raspberry_pi_mac.txt)
 ssh_pass="raspberry" #here change your password
 user="pi" 
-#zkontrolovani nainstalovani fingu
+#check fing installation
 
 if [ -z "$fing" ]
 	then
